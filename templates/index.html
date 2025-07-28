@@ -6,9 +6,9 @@
 
 {% block body %}
 <!--<h3>Test</h3>-->
-<form method="POST">
-        {{form.hidden_tag()}}
-        {{form.file()}}
-        {{form.submit()}}
-    </form>
+<form method="POST" enctype="multipart/form-data">
+    {{form.hidden_tag()}}
+    {{form.file()}}
+    {{form.submit()}}
+</form>
 {% endblock %}
