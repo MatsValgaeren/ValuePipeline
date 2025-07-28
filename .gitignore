@@ -1,12 +1,8 @@
 package-lock.json
 package.json
 
-.venv
-.venv/**
-.idea
-.idea/**
-.node_modules
-.node_modules/**
-
-.database/**
-.files/**
+.venv/
+.idea/
+.node_modules/
+.database/
+.files/
