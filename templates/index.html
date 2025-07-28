@@ -2,13 +2,26 @@
 
 {% block head %}
 <h1>Template</h1>
+
+<script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css" />
+
 {% endblock %}
 
 {% block body %}
 <!--<h3>Test</h3>-->
-<form method="POST" enctype="multipart/form-data">
-    {{form.hidden_tag()}}
-    {{form.file()}}
-    {{form.submit()}}
+<!--<form method="POST" enctype="multipart/form-data">-->
+<!--    {{form.hidden_tag()}}-->
+<!--    {{form.file()}}-->
+<!--    {{form.submit()}}-->
+<!--</form>-->
+
+<!-- Example of a form that Dropzone can take over -->
+
+<form action="/file-upload" class="dropzone" >
+  <div class="fallback">
+    <input name="file" type="file" multiple />
+  </div>
 </form>
+
 {% endblock %}
