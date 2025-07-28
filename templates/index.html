@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<h1>Template</h1>
+{% endblock %}
+
+{% block body %}
+<!--<h3>Test</h3>-->
+<form method="POST">
+        {{form.hidden_tag()}}
+        {{form.file()}}
+        {{form.submit()}}
+    </form>
+{% endblock %}
