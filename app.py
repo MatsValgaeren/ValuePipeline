@@ -4,6 +4,8 @@ from wtforms import FileField, SubmitField
 from werkzeug.utils import secure_filename
 import os
 from wtforms.validators import InputRequired
+import dbm
+import file_utils
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "scretkey"
@@ -34,11 +36,16 @@ def file_upload():
     saved_files = []
     for file in uploaded_files:
         if file:
+            file_utils.get_file_info(file)
+
+
             filename = file.filename
             save_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(save_path)
             saved_files.append(filename)
 
+
+            dbm.add_item(filename, app.config['UPLOAD_FOLDER'], 'Mats')
     return jsonify({'message': 'Files uploaded successfully', 'files': saved_files})
 
 if __name__ == "__main__":
