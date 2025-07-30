@@ -2,6 +2,7 @@
 
 from peewee import *
 
+
 db = SqliteDatabase('database/ValuePipeline-Database.db')
 
 # sqlite_db = SqliteDatabase('/path/to/app.db', pragmas={
@@ -12,17 +13,37 @@ class User(Model):
     id = IntegerField(unique=True)
     filename = CharField(null=True)
     filepath = CharField()
+
+    create_datetime = DateTimeField(column_name='Create DateTime')
+    upload_datetime = DateTimeField(column_name='Upload DateTime')
+
     creator = CharField()
     status = CharField()
     duration = IntegerField()
+
+    width = IntegerField()
+    height = CharField()
+
+    iso = IntegerField()
+    exposure = IntegerField()
+    shutter = IntegerField()
+    focal_length = IntegerField(column_name='Focal Length')
+
 
     class Meta:
         database = db
         table_name = 'files'
 
-def add_item(filename, filepath, creator):
-    q = User.insert(filename=filename, filepath=filepath, creator=creator)
+def add_item(**kwargs):
+    required = ['filename', 'filepath']
+
+    for field in required:
+        if field not in kwargs:
+            raise ValueError(f"Missing required field: {field}")
+
+    q = User.insert(**kwargs)
     q.execute()
+
 
 # rows=User.select()
 # print (rows.sql())

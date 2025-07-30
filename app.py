@@ -4,8 +4,8 @@ from wtforms import FileField, SubmitField
 from werkzeug.utils import secure_filename
 import os
 from wtforms.validators import InputRequired
-import dbm
 import file_utils
+
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "scretkey"
@@ -30,23 +30,12 @@ def index():
         return "File has been uploaded."
     return render_template('index.html', form=form)
 
-@app.route('//file-upload', methods=["POST"])
+@app.route('/file-upload', methods=["POST"])
 def file_upload():
     uploaded_files = request.files.getlist('file')
-    saved_files = []
-    for file in uploaded_files:
-        if file:
-            file_utils.get_file_info(file)
-
-
-            filename = file.filename
-            save_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(save_path)
-            saved_files.append(filename)
-
-
-            dbm.add_item(filename, app.config['UPLOAD_FOLDER'], 'Mats')
-    return jsonify({'message': 'Files uploaded successfully', 'files': saved_files})
+    isd = file_utils.save_file(app, uploaded_files, 'Mats')
+    print(isd)
+    return jsonify(isd)
 
 if __name__ == "__main__":
     app.run(debug=True)

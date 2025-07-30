@@ -1,44 +1,81 @@
 from PIL import Image
 from PIL.ExifTags import TAGS
+import dbm
+from datetime import datetime
+import os
 
-def get_file_info(file):
-    im = Image.open(file)
-    exif_data = im._getexif()
-    # print(im.format, im.size, im.mode)
-    # print(im.info)
+EXT_EXTRACTION_LIST = [
+    ''
+]
 
-    if exif_data is not None:
-        # Convert EXIF tag IDs to human-readable names
+def save_file(app, file_list, user):
+    saved_files = []
+    for file in file_list:
+        if file:
+            current_time = datetime.now()
+
+            filename = file.filename
+            save_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(save_path)
+            saved_files.append(filename)
+
+            im = Image.open(file)
+
+            exif_data = im._getexif()
+            if exif_data is not None:
+                save_exif_file_to_db(im, filename, app.config['UPLOAD_FOLDER'], exif_data, user, current_time)
+
+            else:
+                im = Image.open(file)
+                width, height = im.size
+
+                dbm.add_item(
+                    filename=filename,
+                    filepath=app.config['UPLOAD_FOLDER'],
+                    creator=user,
+                    width=width,
+                    height=height
+                )
+    return {'message': 'Files uploaded successfully', 'files': saved_files}
+
+def save_exif_file_to_db(im, filename, filepath, exif_data, user, upload_datetime):
         metadata = {TAGS.get(tag): value for tag, value in exif_data.items()}
-        width = metadata['ExifImageWidth']
-        height = metadata['ExifImageHeight']
 
-        iso = metadata['ISOSpeedRatings']
-        fnumber = metadata['FNumber']
-        exposure = metadata['ExposureTime']
-        wb = metadata['WhiteBalance']
-        focal_length = metadata['FocalLength']
-        focal_length_in_35mm = metadata['FocalLengthIn35mmFilm']
+        width, height = im.size
 
-        date = metadata['DateTime'][:10]
-        time = metadata['DateTime'][11:]
-        time_offset = metadata['OffsetTime']
+        iso = metadata.get('ISOSpeedRatings')
+        fnumber = metadata.get('FNumber')
+        exposure = metadata.get('ExposureTime')
+        wb = metadata.get('WhiteBalance')
+        focal_length = metadata.get('FocalLength')
+        focal_length_in_35mm = metadata.get('FocalLengthIn35mmFilm')
 
-        camera = metadata['Model']
-        lens = metadata['LensModel']
+        create_datetime = metadata.get('DateTime')
+        time_offset = metadata.get('OffsetTime')
 
+        camera = metadata.get('Model')
+        lens = metadata.get('LensModel')
 
+        for k, v in {
+            "iso": iso,
+            "shutter": fnumber,
+            "exposure": exposure,
+            "width": width,
+            "height": height,
+            "focal_length": focal_length
+        }.items():
+            print(f"{k} = {v} (type: {type(v)})")
 
-
-        print(width, height, iso, fnumber, exposure, wb, focal_length, focal_length_in_35mm, date, time, time_offset, camera, lens)
-        # for tag, value in metadata.items():
-        #     pass
-        #     print(f"{tag}: {value}")
-    else:
-        print("No EXIF metadata found.")
-
-# get_file_info(r"C:\Users\matsv\Pictures\AlienWallpaperCool.jpg")
-
-# get_file_info(r"C:\Users\matsv\Pictures\Camera Roll\WIN_20250430_10_42_11_Pro.jpg")
-
-get_file_info(r"F:\School 24-25\s2\Camera&Studio\w2_images\DSC00322.JPG")
+        dbm.add_item(
+            filename=filename,
+            filepath=filepath,
+            creator=user,
+            create_datetime=create_datetime,
+            upload_datetime=upload_datetime,
+            iso=iso,
+            shutter=fnumber,
+            exposure=exposure,
+            width=width,
+            height=height,
+            focal_length=focal_length
+        )
