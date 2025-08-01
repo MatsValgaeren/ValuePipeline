@@ -1,3 +1,49 @@
-body {
-    margin: 0;
+* {
+    /*background-color: #ffffff;*/
+    /*box-sizing: border-box;*/
+    /*border: 2px solid;*/
+
 }
+
+body {
+    font-family: 'Mitr', sans-serif;
+    margin: 100;
+
+    text-align: center;
+}
+
+.process-zone {
+    padding: 20px;
+}
+
+/* Change drop area border and background */
+.dropzone {
+    border: 3px dashed #595bd4 !important;
+    /*background: #f6f7fb !important;*/
+    /*font-family: 'Mitr', sans-serif;*/
+    /*-ms-flex-align: center;*/
+    margin: 0 auto;       /* centers block element horizontally */
+    max-width: 50%;
+}
+
+/* Change the preview box for each added file */
+.dropzone .dz-preview {
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    background: #fff;
+    margin: 10px;
+}
+
+/* Change file name styling */
+.dropzone .dz-filename {
+    color: #595bd4;
+    font-weight: bold;
+}
+
+/* Change progress bar color */
+.dropzone .dz-upload {
+    background: #3ecf8e;
+}
+
+
+

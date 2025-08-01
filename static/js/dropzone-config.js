@@ -1,13 +1,39 @@
-//UNUSED CURRENTLY!
-
-// If you are using JavaScript/ECMAScript modules:
-import Dropzone from "dropzone";
-
-// If you are using an older version than Dropzone 6.0.0,
-// then you need to disabled the autoDiscover behaviour here:
 Dropzone.autoDiscover = false;
 
-let myDropzone = new Dropzone("#my-form");
-myDropzone.on("addedfile", file => {
-  console.log(`File added: ${file.name}`);
+// Wait for the DOM to be fully loaded
+document.addEventListener('DOMContentLoaded', function () {
+  const myDropzone = new Dropzone("#my-dropzone", {
+    url: "/file-process",
+    uploadMultiple: true,
+    autoProcessQueue: false,
+    parallelUploads: 100,
+    paramName: "file",
+    addRemoveLinks: true
+  });
+
+  document.getElementById("process-btn").addEventListener("click", function() {
+    myDropzone.processQueue();
+  });
+
+
+  const fileList = document.getElementById('file-list');
+
+
+    myDropzone.on("addedfile", function(file) {
+      const li = document.createElement('li');
+      li.id = `file-list-item-${file.upload.uuid || file.name}`;
+      li.textContent = file.name;
+      fileList.appendChild(li);
+    });
+
+    myDropzone.on("successmultiple", function(files, response) {
+      files.forEach(function(file) {
+        myDropzone.removeFile(file);
+
+        let li = document.getElementById(`file-list-item-${file.upload.uuid || file.name}`);
+        if (li) {
+          li.textContent += ' - Processed';
+        }
+      });
+    });
 });

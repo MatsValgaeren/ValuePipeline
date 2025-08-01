@@ -1,14 +1,20 @@
 {% extends 'base.html' %}
 
 {% block head %}
-<h1>Template</h1>
+<link href="https://fonts.googleapis.com/css2?family=Mitr&display=swap" rel="stylesheet">
 
 <script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css" />
+<script src="{{ url_for('static', filename='js/dropzone-config.js') }}"></script>
+
+<!--<script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>-->
+<!--<link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css" />-->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 
 {% endblock %}
 
 {% block body %}
+<h1>Upload your files here.</h1>
 <!--<h3>Test</h3>-->
 <!--<form method="POST" enctype="multipart/form-data">-->
 <!--    {{form.hidden_tag()}}-->
@@ -18,10 +24,25 @@
 
 <!-- Example of a form that Dropzone can take over -->
 
-<form action="/file-upload" class="dropzone" >
-  <div class="fallback">
-    <input name="file" type="file" multiple />
-  </div>
+<!-- Template -->
+<div class="process-zone" id="myDropzone">
+  <form action="/file-process" class="dropzone" id="my-dropzone">
+    <div class="fallback">
+      <input name="file" type="file" multiple />
+    </div>
+  </form>
+  <button id="process-btn" type="button">Process Files</button>
+</div>
+
+<!-- Container to display uploaded files info -->
+<div id="processed-files-info" style="margin-top: 20px;">
+  <h3>Processed Files:</h3>
+  <ul id="file-list"></ul>
+</div>
+
+<form action="/file-upload" class="files">
 </form>
+<button id="upload-btn" type="button">Upload Files</button>
+
 
 {% endblock %}

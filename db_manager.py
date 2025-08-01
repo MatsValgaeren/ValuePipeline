@@ -11,8 +11,11 @@ db = SqliteDatabase('database/ValuePipeline-Database.db')
 
 class User(Model):
     id = IntegerField(unique=True)
-    filename = CharField(null=True)
     filepath = CharField()
+    filename = CharField(null=True)
+    version = IntegerField()
+    extension = CharField()
+
 
     create_datetime = DateTimeField(column_name='Create DateTime')
     upload_datetime = DateTimeField(column_name='Upload DateTime')
@@ -29,6 +32,10 @@ class User(Model):
     shutter = IntegerField()
     focal_length = IntegerField(column_name='Focal Length')
 
+    project = CharField()
+    sequence = IntegerField()
+    shot = IntegerField()
+
 
     class Meta:
         database = db
@@ -40,7 +47,7 @@ def add_item(**kwargs):
     for field in required:
         if field not in kwargs:
             raise ValueError(f"Missing required field: {field}")
-
+    print(kwargs)
     q = User.insert(**kwargs)
     q.execute()
 
