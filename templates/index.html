@@ -1,48 +1,43 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
 {% block head %}
-<link href="https://fonts.googleapis.com/css2?family=Mitr&display=swap" rel="stylesheet">
-
-<script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
-<link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css" />
-<script src="{{ url_for('static', filename='js/dropzone-config.js') }}"></script>
-
-<!--<script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>-->
-<!--<link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css" />-->
-<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-
+  <meta charset="UTF-8">
+  <title>Dropzone Upload</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Mitr&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 {% endblock %}
 
 {% block body %}
-<h1>Upload your files here.</h1>
-<!--<h3>Test</h3>-->
-<!--<form method="POST" enctype="multipart/form-data">-->
-<!--    {{form.hidden_tag()}}-->
-<!--    {{form.file()}}-->
-<!--    {{form.submit()}}-->
-<!--</form>-->
+  <h1>Upload your files here.</h1>
 
-<!-- Example of a form that Dropzone can take over -->
-
-<!-- Template -->
-<div class="process-zone" id="myDropzone">
-  <form action="/file-process" class="dropzone" id="my-dropzone">
+  <!-- Dropzone Form -->
+  <form action="/file-process"
+        class="dropzone"
+        id="my-dropzone"
+        enctype="multipart/form-data">
     <div class="fallback">
       <input name="file" type="file" multiple />
     </div>
   </form>
-  <button id="process-btn" type="button">Process Files</button>
-</div>
 
-<!-- Container to display uploaded files info -->
-<div id="processed-files-info" style="margin-top: 20px;">
-  <h3>Processed Files:</h3>
-  <ul id="file-list"></ul>
-</div>
+  <form action="/file-upload" method="post">
+    <button type="submit">Upload Files</button>
+  </form>
 
-<form action="/file-upload" class="files">
-</form>
-<button id="upload-btn" type="button">Upload Files</button>
+  <!-- Optional: Uploaded Files Info -->
+  <div id="processed-files-info">
+    <h3>Processed Files:</h3>
+  </div>
+
+  <ul>
+    {% for file in items %}
+      <li>{{ file }}</li>
+    {% endfor %}
+  </ul>
 
 
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>
+  <script src="{{ url_for('static', filename='js/dropzone-config.js') }}"></script>
 {% endblock %}

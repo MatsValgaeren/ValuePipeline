@@ -51,6 +51,10 @@ def add_item(**kwargs):
     q = User.insert(**kwargs)
     q.execute()
 
+def get_items():
+    pass
+
+
 
 # rows=User.select()
 # print (rows.sql())

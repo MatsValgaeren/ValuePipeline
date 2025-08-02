@@ -21,36 +21,49 @@ class IO_Manager():
     def __init__(self):
         self.current_time = datetime.now()
 
+    def get_data(self, app, file):
+        file_data = {}
+
+        filename = file.filename
+        save_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        # file.save(save_path)
+        # saved_files.append(filename)
+
+        file_data['filename_no_ext'], file_data['file_extension'] = os.path.splitext(filename)
+        parts = file_data['filename_no_ext'].split('_')
+        if len(parts) > 5 and parts[0] in PROJECTS and parts[1].isdigit() and parts[2].isdigit():
+            file_data["proj"] = parts[0]
+            file_data["seq"] = parts[1]
+            file_data["shot"] = parts[2]
+            file_data["version"] = parts[-1][1:]
+
+        return file_data
+
+    def get_process_data(self, app, file_list):
+        files_data = []
+        for file in file_list:
+            file_data = self.get_data(app, file)
+            files_data.append(file_data)
+        return files_data
 
     def save_file(self, app, file_list, user):
         saved_files = []
         for file in file_list:
-            self.proj, self.seq, self.shot, self.version = '', None, None, 1
             if file:
-                filename = file.filename
-                save_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                # file.save(save_path)
-                # saved_files.append(filename)
+                file_data = self.get_data(app, file)
 
-                filename_no_ext, file_extension = os.path.splitext(filename)
-                parts = filename_no_ext.split('_')
-                if len(parts) > 5 and parts[0] in PROJECTS and parts[1].isdigit() and parts[2].isdigit():
-                    self.proj = parts[0]
-                    self.seq = parts[1]
-                    self.shot = parts[2]
-                    self.version = parts[-1][1:]
-                print(self.proj ,self.seq)
+                # If file is an image
+                if file_data['file_extension'] in IMAGE_EXT_LIST:
+                    self.save_image_file(file, file_data, app.config['UPLOAD_FOLDER'], user)
 
-                if file_extension in IMAGE_EXT_LIST:
-                    self.save_image_file(file, filename, file_extension, app.config['UPLOAD_FOLDER'], user)
             return {'message': 'Files uploaded successfully', 'files': saved_files}
 
-    def save_image_file(self, file, filename, file_extension, filepath, user):
+    def save_image_file(self, file, file_data, filepath, user):
             im = Image.open(file)
 
             exif_data = im._getexif()
             if exif_data is not None:
-                self.save_exif_file_to_db(im, filename, file_extension, filepath, exif_data, user)
+                self.save_exif_file_to_db(im, file_data, filepath, exif_data, user)
 
             else:
                 im = Image.open(file)
@@ -58,9 +71,9 @@ class IO_Manager():
 
                 db_manager.add_item(
                     filepath=filepath,
-                    filename=filename,
-                    version=self.version,
-                    extension=file_extension,
+                    filename=file_data['filename'],
+                    version=file_data['version'],
+                    extension=file_data['file_extension'],
                     creator=user,
                     width=width,
                     height=height,
@@ -68,7 +81,7 @@ class IO_Manager():
                     )
 
 
-    def save_exif_file_to_db(self, im, filename, file_extension, filepath, exif_data, user):
+    def save_exif_file_to_db(self, im, file_data, filepath, exif_data, user):
             metadata = {TAGS.get(tag): value for tag, value in exif_data.items()}
 
             width, height = im.size
@@ -98,9 +111,9 @@ class IO_Manager():
 
             db_manager.add_item(
                 filepath=filepath,
-                filename=filename,
-                version=self.version,
-                extension=file_extension,
+                filename=file_data['filename'],
+                version=file_data['version'],
+                extension=file_data['file_extension'],
                 creator=user,
                 create_datetime=create_datetime,
                 upload_datetime=self.current_time,
@@ -110,7 +123,7 @@ class IO_Manager():
                 width=width,
                 height=height,
                 focal_length=focal_length,
-                project=self.proj,
-                sequence=self.seq,
-                shot=self.shot
+                project=file_data['proj'],
+                sequence=file_data['seq'],
+                shot=file_data['shot']
             )
