@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_wtf import FlaskForm
+from flask_socketio import SocketIO, emit
 from wtforms import FileField, SubmitField
 from werkzeug.utils import secure_filename
 import shutil
@@ -14,6 +15,8 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 app.config["UPLOAD_FOLDER"] = "files"
 app.config["PROCESS_FOLDER"] = "process"
 
+socketio = SocketIO(app)
+
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 os.makedirs(app.config["PROCESS_FOLDER"], exist_ok=True)
 app.config["CURR_UPLOADED_FILES"] = []
@@ -25,7 +28,7 @@ class UploadFileForm(FlaskForm):
 @app.route('/', methods=["GET","POST"])
 def index():
     form = UploadFileForm()
-    print('curr', app.config["CURR_UPLOADED_FILES"])
+    print('ind curr', app.config["CURR_UPLOADED_FILES"])
     return render_template('index.html', form=form, items=app.config["CURR_UPLOADED_FILES"])
 
 @app.route('/file-process', methods=['POST'])
@@ -37,39 +40,70 @@ def file_process():
     pipe_man = pipeline_manager.WebManager()
 
     process_folder = app.config.get("PROCESS_FOLDER", "files")
-    abs_process_folder = os.path.join(os.path.abspath(os.path.dirname(__file__)), process_folder)
+    abs_process_folder = '/'.join([BASE_DIR, process_folder])
     os.makedirs(abs_process_folder, exist_ok=True)  # Ensure folder exists
 
+    uploaded_files = []
     for file in files_to_process:
         filename = secure_filename(file.filename)
-        save_path = os.path.join(process_folder, filename)  # <-- THIS is relative, should use abs_process_folder
-        print(save_path)
+        save_path = os.path.join(process_folder, filename)
         file.save(save_path)
+        socketio.emit('file_uploaded', {'filename': filename})
+        uploaded_files.append(filename)
 
-    app.config["CURR_UPLOADED_FILES"] = pipe_man.get_process_info(app, files_to_process)
-    print('uploaded files', app.config["CURR_UPLOADED_FILES"])
-    return jsonify(app.config["CURR_UPLOADED_FILES"])
+    for item in pipe_man.get_process_info(app, files_to_process):
+        print(item)
+        app.config["CURR_UPLOADED_FILES"].append(item)
+
+
+    # (item for item in pipe_man.get_process_info(app, files_to_process))
+    return jsonify({
+        'success': True,
+        'message': 'Files processed successfully',
+        'files': uploaded_files
+    })
+
+    # return render_template('index.html', form=UploadFileForm(), items=app.config["CURR_UPLOADED_FILES"])
+
+
+@app.route('/get_files')
+def get_files():
+    files = []
+
+    # Get files from your current uploaded files config
+    for file_info in app.config["CURR_UPLOADED_FILES"]:
+        files.append({
+            'name': file_info['filename_no_ext'] + file_info['file_extension'],
+            'size': file_info.get('size', 'Unknown'),
+            'info': file_info  # Include full info if needed
+        })
+
+    return jsonify(files)
 
 @app.route('/file-upload', methods=["POST"])
 def file_upload():
     pipe_man = pipeline_manager.WebManager()
-    uploaded_files = []
+    processed_files = []
+
+    for file in app.config["CURR_UPLOADED_FILES"]:
+        processed_files.append(file['filename_no_ext'] + file['file_extension'])
 
     process_folder = app.config.get("PROCESS_FOLDER", "files")
     upload_folder = app.config.get("UPLOAD_FOLDER", "files")
 
-    for file in request.files.getlist("file"):
-        if file and file.filename:
-            filename = secure_filename(file.filename)
-            save_path = os.path.join(process_folder, filename)
-            file.save(save_path)
-            uploaded_files.append(save_path)
+    # for file in request.files.getlist("file"):
+    #     if file and file.filename:
+    #         filename = secure_filename(file.filename)
+    #         save_path = os.path.join(process_folder, filename)
+    #         file.save(save_path)
+    #         uploaded_files.append(save_path)
 
     moved_files = []
-    for file_path in uploaded_files:
-        filename = os.path.basename(file_path)
-        new_path = os.path.join(upload_folder, filename)
-        shutil.move(file_path, new_path)
+    for file_name in processed_files:
+        old_path = os.path.join(BASE_DIR, process_folder, file_name)
+        new_path = os.path.join(BASE_DIR, upload_folder, file_name)
+        shutil.move(str(old_path), str(new_path))
+        print(old_path)
         moved_files.append(new_path)
 
     result = pipe_man.save_file(app, moved_files, 'Mats')
