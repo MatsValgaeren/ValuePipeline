@@ -35,28 +35,14 @@ def index():
 def file_process():
     files_to_process = []
     for key in request.files:
-        files_to_process.append(request.files.get(key))
+        file = request.files[key]
+        print(file.filename)
+        files_to_process.append(file.filename)
 
     pipe_man = pipeline_manager.WebManager()
+    print(files_to_process, app.config["CURR_UPLOADED_FILES"], app.config.get("PROCESS_FOLDER"), app.config.get("UPLOAD_FOLDER"))
+    uploaded_files = pipe_man.process_files(files_to_process, app.config["CURR_UPLOADED_FILES"], app.config.get("PROCESS_FOLDER"), app.config.get("UPLOAD_FOLDER"))
 
-    process_folder = app.config.get("PROCESS_FOLDER", "files")
-    abs_process_folder = '/'.join([BASE_DIR, process_folder])
-    os.makedirs(abs_process_folder, exist_ok=True)  # Ensure folder exists
-
-    uploaded_files = []
-    for file in files_to_process:
-        filename = secure_filename(file.filename)
-        save_path = os.path.join(process_folder, filename)
-        file.save(save_path)
-        socketio.emit('file_uploaded', {'filename': filename})
-        uploaded_files.append(filename)
-
-    for item in pipe_man.get_process_info(app, files_to_process):
-        print(item)
-        app.config["CURR_UPLOADED_FILES"].append(item)
-
-
-    # (item for item in pipe_man.get_process_info(app, files_to_process))
     return jsonify({
         'success': True,
         'message': 'Files processed successfully',
@@ -106,7 +92,8 @@ def file_upload():
         print(old_path)
         moved_files.append(new_path)
 
-    result = pipe_man.save_file(app, moved_files, 'Mats')
+    result = pipe_man.save_file(app.config["UPLOAD_FOLDER"], moved_files, 'Mats')
+
     return redirect(url_for('index'))
 
 

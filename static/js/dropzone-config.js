@@ -7,35 +7,31 @@ document.addEventListener('DOMContentLoaded', function () {
     parallelUploads: 100,
     paramName: "file",
 
-//    init: function() {
-//      this.on("successmultiple", function(files, response) {
-//        // Remove files immediately
-//        files.forEach(file => {
-//          this.removeFile(file);
-//        });
-//        updateFileList();
-//      });
-//
-//      this.on("success", function(file, response) {
-//        this.removeFile(file);
-//        updateFileList();
-//      });
-//    }
-//  });
-});
+    init: function() {
+      var dropzone = this;
 
-  // Update file list when dropzone completes upload
-  myDropzone.on("successmultiple", function (files, response) {
-    // Wait a bit for server processing, then update
-    setTimeout(updateFileList, 1000);
+      this.on("successmultiple", function(files, response) {
+        console.log("Success multiple:", response);
+
+        files.forEach(file => {
+          dropzone.removeFile(file);
+        });
+
+        updateFileList();
+      });
+
+      this.on("success", function(file, response) {
+        console.log("Success single:", response);
+        dropzone.removeFile(file);
+        updateFileList();
+      });
+
+      this.on("error", function(file, errorMessage, xhr) {
+        console.error("Upload error:", errorMessage);
+      });
+    }
   });
 
-  myDropzone.on("success", function (file, response) {
-    // Also handle single file uploads
-    setTimeout(updateFileList, 1000);
-  });
-
-  // Load initial file list
   updateFileList();
 });
 
@@ -44,7 +40,7 @@ function updateFileList() {
         .then(response => response.json())
         .then(files => {
             const fileList = document.getElementById('file-list');
-            fileList.innerHTML = '<h3>Current Files:</h3>';
+            fileList.innerHTML = '<h3>Processed Files:</h3>';
 
             if (files.length === 0) {
                 fileList.innerHTML += '<p>No files uploaded yet.</p>';
@@ -68,12 +64,3 @@ function updateFileList() {
             document.getElementById('file-list').innerHTML = '<p>Error loading files.</p>';
         });
 }
-
-// Initialize socket connection
-const socket = io();
-
-// Listen for file upload events from other users
-socket.on('file_uploaded', function(data) {
-    console.log('File uploaded:', data.filename);
-    updateFileList(); // Refresh file list when any user uploads
-});

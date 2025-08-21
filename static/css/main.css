@@ -23,7 +23,7 @@ body {
     /*font-family: 'Mitr', sans-serif;*/
     /*-ms-flex-align: center;*/
     margin: 0 auto;       /* centers block element horizontally */
-    max-width: 50%;
+
 }
 
 /* Change the preview box for each added file */
@@ -45,10 +45,17 @@ body {
     background: #3ecf8e;
 }
 
+.button {
+    margin: 15px;
+}
 
-
-
-
+.file_zone {
+    border: 3px solid #555555 !important;
+    border-radius: 5px;
+    margin: 0 auto;
+    padding: 10px;
+    max-width: 50%;
+}
 
 #file-list {
     margin-top: 20px;

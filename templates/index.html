@@ -11,30 +11,42 @@
 {% block body %}
   <h1>Upload your files here.</h1>
 
-  <!-- Dropzone Form -->
-  <form action="/file-process"
-        class="dropzone"
-        id="my-dropzone"
-        enctype="multipart/form-data">
-    <div class="fallback">
-      <input name="file" type="file" multiple />
+  <div class="file_zone">
+    <!-- Dropzone Form -->
+    <form action="/file-process"
+          class="dropzone"
+          id="my-dropzone"
+          enctype="multipart/form-data">
+      <div class="fallback">
+        <input name="file" type="file" multiple />
+      </div>
+    </form>
+    <div id="file-list">
+      <!-- Files will be dynamically loaded here -->
+
     </div>
-  </form>
 
-  <form action="/file-upload" method="post">
-    <button type="submit">Upload Files</button>
-  </form>
-
-  <!-- Optional: Uploaded Files Info -->
-  <div id="processed-files-info">
-    <h3>Processed Files:</h3>
+    <form class="button" action="/file-upload" method="post">
+      <button type="submit">Upload Files</button>
+    </form>
   </div>
 
-  <ul>
-    {% for file in items %}
-      <li>{{ file }}</li>
-    {% endfor %}
-  </ul>
+  <!-- Optional: Uploaded Files Info -->
+<!--  <div id="processed-files-info">-->
+<!--    <h3>Processed Files:</h3>-->
+<!--  </div>-->
+
+
+
+<!--  <ul>-->
+<!--    {% for file in items %}-->
+<!--      <li>{{ file }}</li>-->
+<!--    {% endfor %}-->
+<!--  </ul>-->
+
+
+
+
 
 
 

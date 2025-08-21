@@ -4,14 +4,7 @@ import db_manager
 from datetime import datetime
 import os
 
-IMAGE_EXT_LIST = {
-    '.jpg', '.jpeg',
-    '.png',
-    '.gif',
-    '.bmp',
-    '.tiff', '.tif',
-    '.webp'
-}
+
 
 PROJECTS = {
     'TEST'
@@ -21,13 +14,13 @@ class IO_Manager():
     def __init__(self):
         self.current_time = datetime.now()
 
-    def get_data(self, app, file):
+    def get_data(self, upload_folder, file):
         file_data = {}
 
-        filename = file.filename
-        save_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        # file.save(save_path)
-        # saved_files.append(filename)
+        filename = str(file)
+        print(filename)
+        save_path = os.path.join(upload_folder, filename)
+
 
         file_data['filename_no_ext'], file_data['file_extension'] = os.path.splitext(filename)
         parts = file_data['filename_no_ext'].split('_')
@@ -39,24 +32,15 @@ class IO_Manager():
 
         return file_data
 
-    def get_process_data(self, app, file_list):
+    def get_process_data(self, file_list, upload_folder):
         files_data = []
+        print('file list:', file_list)
         for file in file_list:
-            file_data = self.get_data(app, file)
+            file_data = self.get_data(upload_folder, file)
             files_data.append(file_data)
         return files_data
 
-    def save_file(self, app, file_list, user):
-        saved_files = []
-        for file in file_list:
-            if file:
-                file_data = self.get_data(app, file)
 
-                # If file is an image
-                if file_data['file_extension'] in IMAGE_EXT_LIST:
-                    self.save_image_file(file, file_data, app.config['UPLOAD_FOLDER'], user)
-
-            return {'message': 'Files uploaded successfully', 'files': saved_files}
 
     def save_image_file(self, file, file_data, filepath, user):
             im = Image.open(file)
