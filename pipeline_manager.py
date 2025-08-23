@@ -71,10 +71,10 @@ class WebManager():
         print('to proc', files_to_process)
         uploaded_files = []
         for file in files_to_process:
-            filename = secure_filename(file)
-            save_path = os.path.join(process_folder, filename)
+            filename = secure_filename(file.filename)
+            save_path = os.path.join(abs_process_folder, filename)
             print('save path', save_path)
-            # file.save(save_path)
+            file.save(save_path)
             uploaded_files.append(filename)
 
 

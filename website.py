@@ -19,7 +19,7 @@ socketio = SocketIO(app)
 
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 os.makedirs(app.config["PROCESS_FOLDER"], exist_ok=True)
-app.config["CURR_UPLOADED_FILES"] = []
+app.config["CURR_PROCESSED_FILES"] = []
 
 class UploadFileForm(FlaskForm):
     file = FileField("file", validators=[InputRequired()])
@@ -28,8 +28,7 @@ class UploadFileForm(FlaskForm):
 @app.route('/', methods=["GET","POST"])
 def index():
     form = UploadFileForm()
-    print('ind curr', app.config["CURR_UPLOADED_FILES"])
-    return render_template('index.html', form=form, items=app.config["CURR_UPLOADED_FILES"])
+    return render_template('index.html', form=form, items=app.config["CURR_PROCESSED_FILES"])
 
 @app.route('/file-process', methods=['POST'])
 def file_process():
@@ -37,19 +36,18 @@ def file_process():
     for key in request.files:
         file = request.files[key]
         print(file.filename)
-        files_to_process.append(file.filename)
+        files_to_process.append(file)
 
     pipe_man = pipeline_manager.WebManager()
-    print(files_to_process, app.config["CURR_UPLOADED_FILES"], app.config.get("PROCESS_FOLDER"), app.config.get("UPLOAD_FOLDER"))
-    uploaded_files = pipe_man.process_files(files_to_process, app.config["CURR_UPLOADED_FILES"], app.config.get("PROCESS_FOLDER"), app.config.get("UPLOAD_FOLDER"))
+    app.config["CURR_PROCESSED_FILES"] = pipe_man.process_files(files_to_process, app.config["CURR_PROCESSED_FILES"], app.config.get("PROCESS_FOLDER"), app.config.get("UPLOAD_FOLDER"))
 
     return jsonify({
         'success': True,
         'message': 'Files processed successfully',
-        'files': uploaded_files
+        'files': app.config["CURR_PROCESSED_FILES"]
     })
 
-    # return render_template('index.html', form=UploadFileForm(), items=app.config["CURR_UPLOADED_FILES"])
+    return render_template('index.html', form=UploadFileForm(), items=app.config["CURR_UPLOADED_FILES"])
 
 
 @app.route('/get_files')
@@ -57,7 +55,7 @@ def get_files():
     files = []
 
     # Get files from your current uploaded files config
-    for file_info in app.config["CURR_UPLOADED_FILES"]:
+    for file_info in app.config["CURR_PROCESSED_FILES"]:
         files.append({
             'name': file_info['filename_no_ext'] + file_info['file_extension'],
             'size': file_info.get('size', 'Unknown'),
@@ -71,21 +69,24 @@ def file_upload():
     pipe_man = pipeline_manager.WebManager()
     processed_files = []
 
-    for file in app.config["CURR_UPLOADED_FILES"]:
-        processed_files.append(file['filename_no_ext'] + file['file_extension'])
+    for file in app.config["CURR_PROCESSED_FILES"]:
+        print(file)
+        processed_files.append(file['filename_no_ext'].file_name)
+        print(processed_files)
 
     process_folder = app.config.get("PROCESS_FOLDER", "files")
     upload_folder = app.config.get("UPLOAD_FOLDER", "files")
 
-    # for file in request.files.getlist("file"):
-    #     if file and file.filename:
-    #         filename = secure_filename(file.filename)
-    #         save_path = os.path.join(process_folder, filename)
-    #         file.save(save_path)
-    #         uploaded_files.append(save_path)
+    for file in request.files.getlist("file"):
+        if file and file.filename:
+            filename = secure_filename(file.filename)
+            save_path = os.path.join(process_folder, filename)
+            file.save(save_path)
+            uploaded_files.append(save_path)
 
     moved_files = []
-    for file_name in processed_files:
+    for file in processed_files:
+        file_name = file
         old_path = os.path.join(BASE_DIR, process_folder, file_name)
         new_path = os.path.join(BASE_DIR, upload_folder, file_name)
         shutil.move(str(old_path), str(new_path))

@@ -40,6 +40,15 @@ class IO_Manager():
             files_data.append(file_data)
         return files_data
 
+    def save_file(self, file, files_data, user):
+        db_manager.add_item(
+                filepath=filepath,
+                filename=file_data['filename'],
+                version=file_data['version'],
+                extension=file_data['file_extension'],
+                creator=user,
+                upload_datetime = self.current_time
+                )
 
 
     def save_image_file(self, file, file_data, filepath, user):
