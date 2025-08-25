@@ -14,15 +14,15 @@ class IO_Manager():
     def __init__(self):
         self.current_time = datetime.now()
 
-    def get_data(self, upload_folder, file):
+    def get_data(self, file):
         file_data = {}
 
-        filename = str(file)
+        filename = str(file.split('/')[-1])
+
         print(filename)
-        save_path = os.path.join(upload_folder, filename)
-
-
+        file_data['filename'] = filename
         file_data['filename_no_ext'], file_data['file_extension'] = os.path.splitext(filename)
+        file_data['size'] = round(os.path.getsize(file)/1024, 0)
         parts = file_data['filename_no_ext'].split('_')
         if len(parts) > 5 and parts[0] in PROJECTS and parts[1].isdigit() and parts[2].isdigit():
             file_data["proj"] = parts[0]
@@ -32,40 +32,38 @@ class IO_Manager():
 
         return file_data
 
-    def get_process_data(self, file_list, upload_folder):
+    def get_process_data(self, file_list, process_folder):
         files_data = []
-        print('file list:', file_list)
         for file in file_list:
-            file_data = self.get_data(upload_folder, file)
+            file_data = self.get_data(file)
             files_data.append(file_data)
         return files_data
 
-    def save_file(self, file, files_data, user):
+    def save_file(self, filepath, file_data, user):
         db_manager.add_item(
                 filepath=filepath,
                 filename=file_data['filename'],
-                version=file_data['version'],
+                # version=file_data['version'],
                 extension=file_data['file_extension'],
                 creator=user,
                 upload_datetime = self.current_time
                 )
 
 
-    def save_image_file(self, file, file_data, filepath, user):
-            im = Image.open(file)
+    def save_image_file(self, filepath, file_data, user):
+            im = Image.open(filepath)
 
             exif_data = im._getexif()
             if exif_data is not None:
                 self.save_exif_file_to_db(im, file_data, filepath, exif_data, user)
 
             else:
-                im = Image.open(file)
                 width, height = im.size
 
                 db_manager.add_item(
                     filepath=filepath,
                     filename=file_data['filename'],
-                    version=file_data['version'],
+                    # version=file_data['version'],
                     extension=file_data['file_extension'],
                     creator=user,
                     width=width,

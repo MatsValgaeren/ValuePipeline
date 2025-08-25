@@ -39,20 +39,22 @@ class WebManager():
     def get_process_info(self, file_list, upload_folder):
         return self.io_manager.get_process_data(file_list, upload_folder)
 
-    def save_file(self, app, file_list, user):
+    def save_file(self, file_list, user):
         saved_files = []
         for file in file_list:
             if file:
-                file_data = self.io_manager.get_data(app, file)
+                file_data = self.io_manager.get_data(file)
                 ext = file_data['file_extension']
                 # If file is an image
                 if ext in IMAGE_EXT_LIST:
-                    self.io_manager.save_image_file(file, file_data, app.config['UPLOAD_FOLDER'], user)
-                if ext in RENDER_EXT_LIST:
-                    if ext == '.blend':
-                        job = q.enqueue(render_file, r"renderer/test.blend")
+                    self.io_manager.save_image_file(file, file_data, user)
+                # if ext in RENDER_EXT_LIST:
+                    # if ext == '.blend':
+                        # job = q.enqueue(render_file, r"renderer/test.blend")
 
-                        print(f"Job {job.id} added to queue")
+                        # print(f"Job {job.id} added to queue")
+                else:
+                    self.io_manager.save_file(file, file_data, user)
 
             return {'message': 'Files uploaded successfully', 'files': saved_files}
 
@@ -67,18 +69,17 @@ class WebManager():
         base_dir = os.path.abspath(os.path.dirname(__file__))
         abs_process_folder = '/'.join([base_dir, process_folder])
         os.makedirs(abs_process_folder, exist_ok=True)  # Ensure folder exists
-
-        print('to proc', files_to_process)
-        uploaded_files = []
+        
+        files = []
         for file in files_to_process:
             filename = secure_filename(file.filename)
             save_path = os.path.join(abs_process_folder, filename)
             print('save path', save_path)
             file.save(save_path)
-            uploaded_files.append(filename)
+            files.append(save_path)
 
 
-        for item in self.get_process_info(files_to_process, upload_folder):
+        for item in self.get_process_info(files, process_folder):
             processed_files.append(item)
 
         return processed_files

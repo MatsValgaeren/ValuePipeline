@@ -12,7 +12,7 @@ import pipeline_manager
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "scretkey"
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-app.config["UPLOAD_FOLDER"] = "files"
+app.config["UPLOAD_FOLDER"] = "uploads"
 app.config["PROCESS_FOLDER"] = "process"
 
 socketio = SocketIO(app)
@@ -35,7 +35,6 @@ def file_process():
     files_to_process = []
     for key in request.files:
         file = request.files[key]
-        print(file.filename)
         files_to_process.append(file)
 
     pipe_man = pipeline_manager.WebManager()
@@ -47,8 +46,6 @@ def file_process():
         'files': app.config["CURR_PROCESSED_FILES"]
     })
 
-    return render_template('index.html', form=UploadFileForm(), items=app.config["CURR_UPLOADED_FILES"])
-
 
 @app.route('/get_files')
 def get_files():
@@ -57,11 +54,10 @@ def get_files():
     # Get files from your current uploaded files config
     for file_info in app.config["CURR_PROCESSED_FILES"]:
         files.append({
-            'name': file_info['filename_no_ext'] + file_info['file_extension'],
+            'name': file_info['filename'],
             'size': file_info.get('size', 'Unknown'),
             'info': file_info  # Include full info if needed
         })
-
     return jsonify(files)
 
 @app.route('/file-upload', methods=["POST"])
@@ -70,9 +66,7 @@ def file_upload():
     processed_files = []
 
     for file in app.config["CURR_PROCESSED_FILES"]:
-        print(file)
-        processed_files.append(file['filename_no_ext'].file_name)
-        print(processed_files)
+        processed_files.append(file['filename_no_ext'] + file['file_extension'])
 
     process_folder = app.config.get("PROCESS_FOLDER", "files")
     upload_folder = app.config.get("UPLOAD_FOLDER", "files")
@@ -84,18 +78,28 @@ def file_upload():
             file.save(save_path)
             uploaded_files.append(save_path)
 
+    user = request.form.get("user")
     moved_files = []
     for file in processed_files:
         file_name = file
         old_path = os.path.join(BASE_DIR, process_folder, file_name)
         new_path = os.path.join(BASE_DIR, upload_folder, file_name)
         shutil.move(str(old_path), str(new_path))
-        print(old_path)
         moved_files.append(new_path)
 
-    result = pipe_man.save_file(app.config["UPLOAD_FOLDER"], moved_files, 'Mats')
-
+    # print(app.config["UPLOAD_FOLDER"], moved_files, "penis")
+    result = pipe_man.save_file(moved_files, user)
+    app.config["CURR_PROCESSED_FILES"] = []
     return redirect(url_for('index'))
+
+@app.route('/delete_file', methods=['DELETE'])
+def delete_file():
+    filename = request.args.get('name')
+    print(app.config["CURR_PROCESSED_FILES"])
+    for file in app.config["CURR_PROCESSED_FILES"]:
+        if file['filename'] == filename:
+            app.config["CURR_PROCESSED_FILES"].remove(file)
+    return jsonify(success=True)
 
 
 if __name__ == "__main__":

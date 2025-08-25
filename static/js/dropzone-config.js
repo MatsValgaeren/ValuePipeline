@@ -53,9 +53,36 @@ function updateFileList() {
                 fileDiv.innerHTML = `
                     <div class="file-info">
                         📁 ${file.name}
-                        <span class="file-size">(${file.size})</span>
+                        <span class="file-size">(${file.size}KB)</span>
+                        <button class="delete-btn">X</button>
                     </div>
                 `;
+                const deleteBtn = fileDiv.querySelector('.delete-btn');
+                deleteBtn.addEventListener('click', () => {
+                  // Send request to server to delete file
+                  fetch(`/delete_file?name=${encodeURIComponent(file.name)}`, {
+                      method: 'DELETE'
+                  })
+                  .then(response => {
+                      if (!response.ok) {
+                          throw new Error("Failed to delete file");
+                      }
+                      return response.json();
+                  })
+                  .then(result => {
+                      if (result.success) {
+                          // Remove from DOM only if deletion was successful
+                          fileList.removeChild(fileDiv);
+                      } else {
+                          alert("Failed to delete the file.");
+                      }
+                  })
+                  .catch(error => {
+                      console.error("Error deleting file:", error);
+                      alert("Error deleting file.");
+                  });
+              });
+
                 fileList.appendChild(fileDiv);
             });
         })
