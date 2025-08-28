@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', function () {
         files.forEach(file => {
           dropzone.removeFile(file);
         });
-
         updateFileList();
       });
 
@@ -33,6 +32,37 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   updateFileList();
+
+
+    document.getElementById("upload-selected").addEventListener("click", () => {
+      // Collect selected checkboxes
+      const selectedFiles = Array.from(document.querySelectorAll(".file-checkbox:checked"))
+        .map(el => el.dataset.filename);
+
+      const username = document.getElementById("username").value;
+
+      const formData = new FormData();
+      formData.append("user", username);
+
+      // Add each selected file as a separate key (Flask likes this)
+      selectedFiles.forEach(filename => {
+        formData.append("render_selected", filename);
+      });
+
+      fetch("/file-upload", {
+        method: "POST",
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        console.log("Upload complete:", data);
+        document.getElementById('file-list').innerHTML = '';
+        updateFileList();
+      })
+      .catch(err => {
+        console.error("Error:", err);
+      });
+    });
 });
 
 function updateFileList() {
@@ -52,9 +82,13 @@ function updateFileList() {
                 fileDiv.className = 'file-item';
                 fileDiv.innerHTML = `
                     <div class="file-info">
-                        📁 ${file.name}
-                        <span class="file-size">(${file.size}KB)</span>
-                        <button class="delete-btn">X</button>
+                      📁 ${file.name}
+                      <span class="file-size">(${file.size}KB)</span>
+                      <label class="switch">
+                        <input type="checkbox" class="file-checkbox" data-filename="${file.name}">
+                        <span class="slider round"></span>
+                      </label>
+                      <button class="delete-btn">Remove File</button>
                     </div>
                 `;
                 const deleteBtn = fileDiv.querySelector('.delete-btn');
@@ -89,5 +123,5 @@ function updateFileList() {
         .catch(error => {
             console.error('Error fetching files:', error);
             document.getElementById('file-list').innerHTML = '<p>Error loading files.</p>';
-        });
+  });
 }

@@ -8,7 +8,7 @@ def render_file(file_path):
     output_path = file_path.replace(".blend", ".png")
     blende_loc = "/home/mval/Applications/blender-4.5.2-linux-x64/blender"
     subprocess.run([
-        blende_loc, "-b", file_path, "-o", output_path, "-f", "1"
+        blende_loc, "-b", file_path, "-a"
     ])
     return f"Rendered: {output_path}"
 

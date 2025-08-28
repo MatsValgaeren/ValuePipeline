@@ -39,11 +39,11 @@ class WebManager():
     def get_process_info(self, file_list, upload_folder):
         return self.io_manager.get_process_data(file_list, upload_folder)
 
-    def save_file(self, file_list, user):
+    def save_file(self, file_list, output_folder, user):
         saved_files = []
         for file in file_list:
             if file:
-                file_data = self.io_manager.get_data(file)
+                file_data = self.io_manager.get_data(file, os.path.join(output_folder, file))
                 ext = file_data['file_extension']
                 # If file is an image
                 if ext in IMAGE_EXT_LIST:
@@ -58,6 +58,17 @@ class WebManager():
 
             return {'message': 'Files uploaded successfully', 'files': saved_files}
 
+    def render(self, files, output_folder):
+        for file in files:
+            file_data = self.io_manager.get_data(file, os.path.join(output_folder, file))
+            print('file data: ', file_data)
+            ext = file_data['file_extension']
+            if ext in RENDER_EXT_LIST:
+                if ext == '.blend':
+                    job = q.enqueue(render_file, file_data['filepath'])
+
+                    print(f"Job {job.id} added to queue")
+        
     def render_blend(self, file_path):
         output_path = file_path.replace(".blend", ".png")
         subprocess.run([

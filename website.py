@@ -5,6 +5,7 @@ from wtforms import FileField, SubmitField
 from werkzeug.utils import secure_filename
 import shutil
 import os
+import json
 from wtforms.validators import InputRequired
 import pipeline_manager
 
@@ -62,6 +63,31 @@ def get_files():
 
 @app.route('/file-upload', methods=["POST"])
 def file_upload():
+    print("Request form:", request.form)
+    user = request.form.get('user')
+    render_selected_raw = request.form.get('render_selected', '[]')
+    print("Raw render_selected:", render_selected_raw)
+    try:
+        render_selected = set(json.loads(render_selected_raw))
+    except Exception as e:
+        print("JSON load error:", e)
+        render_selected = set()
+
+    print("Parsed render_selected:", render_selected)
+    user = request.form.get("user", "default_user")
+
+    render_selected = set(request.form.getlist("render_selected"))
+    upload_folder = app.config.get("upload_folder", "uploads")  # or whatever you use
+    base_dir = os.path.abspath(os.path.dirname(__file__))        # ensure base_dir is set
+
+    render_full_paths = set()
+    for filename in render_selected:
+        full_path = os.path.join(base_dir, upload_folder, filename)
+        if os.path.exists(full_path):
+            render_full_paths.add(full_path)
+        else:
+            print(f"⚠️ File not found for rendering: {full_path}")
+
     pipe_man = pipeline_manager.WebManager()
     processed_files = []
 
@@ -78,7 +104,6 @@ def file_upload():
             file.save(save_path)
             uploaded_files.append(save_path)
 
-    user = request.form.get("user")
     moved_files = []
     for file in processed_files:
         file_name = file
@@ -88,9 +113,12 @@ def file_upload():
         moved_files.append(new_path)
 
     # print(app.config["UPLOAD_FOLDER"], moved_files, "penis")
-    result = pipe_man.save_file(moved_files, user)
+    result = pipe_man.save_file(moved_files, upload_folder, user)
     app.config["CURR_PROCESSED_FILES"] = []
-    return redirect(url_for('index'))
+
+    pipe_man.render(render_full_paths, upload_folder)
+    # return redirect(url_for('index'))
+    return jsonify(success=True)
 
 @app.route('/delete_file', methods=['DELETE'])
 def delete_file():

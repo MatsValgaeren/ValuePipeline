@@ -14,12 +14,13 @@ class IO_Manager():
     def __init__(self):
         self.current_time = datetime.now()
 
-    def get_data(self, file):
+    def get_data(self, file, filepath):
         file_data = {}
 
         filename = str(file.split('/')[-1])
 
         print(filename)
+        file_data['filepath'] = filepath
         file_data['filename'] = filename
         file_data['filename_no_ext'], file_data['file_extension'] = os.path.splitext(filename)
         file_data['size'] = round(os.path.getsize(file)/1024, 0)
@@ -35,7 +36,7 @@ class IO_Manager():
     def get_process_data(self, file_list, process_folder):
         files_data = []
         for file in file_list:
-            file_data = self.get_data(file)
+            file_data = self.get_data(file, process_folder)
             files_data.append(file_data)
         return files_data
 
