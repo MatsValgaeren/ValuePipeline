@@ -90,10 +90,14 @@ function updateFileList() {
 
                 fileDiv.innerHTML = `
                     <div class="file-info">
-                      📁 ${file.name}
-                      <span class="file-size">(${file.size}KB)</span>
-                      ${checkboxHTML}
-                      <button class="delete-btn" aria-label="Remove File"></button>
+                      <div class="file-data">
+                        📁 ${file.name}
+                        <span class="file-size">(${file.size}KB)</span>
+                      </div>
+                      <div class="file-buttons">
+                        ${checkboxHTML}
+                        <button class="delete-btn" aria-label="Remove File"></button>
+                      </div>
                     </div>
                 `;
 
