@@ -80,17 +80,23 @@ function updateFileList() {
             files.forEach(file => {
                 const fileDiv = document.createElement('div');
                 fileDiv.className = 'file-item';
+
+                const checkboxHTML = (file.ext === '.blend') ? `
+                  <label class="switch">
+                    <input type="checkbox" class="file-checkbox" data-filename="${file.name}">
+                    <span class="slider round"></span>
+                  </label>
+                ` : '';
+
                 fileDiv.innerHTML = `
                     <div class="file-info">
                       📁 ${file.name}
                       <span class="file-size">(${file.size}KB)</span>
-                      <label class="switch">
-                        <input type="checkbox" class="file-checkbox" data-filename="${file.name}">
-                        <span class="slider round"></span>
-                      </label>
-                      <button class="delete-btn">Remove File</button>
+                      ${checkboxHTML}
+                      <button class="delete-btn" aria-label="Remove File"></button>
                     </div>
                 `;
+
                 const deleteBtn = fileDiv.querySelector('.delete-btn');
                 deleteBtn.addEventListener('click', () => {
                   // Send request to server to delete file

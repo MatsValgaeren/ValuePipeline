@@ -55,7 +55,8 @@ def get_files():
     # Get files from your current uploaded files config
     for file_info in app.config["CURR_PROCESSED_FILES"]:
         files.append({
-            'name': file_info['filename'],
+            'name': file_info['filename'] ,
+            'ext': '.' + file_info['filename'].split('.')[-1],
             'size': file_info.get('size', 'Unknown'),
             'info': file_info  # Include full info if needed
         })
